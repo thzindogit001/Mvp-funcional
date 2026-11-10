@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academarket - UFLA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-blue-900 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid font-bold text-2xl text-amber-400">🎓</i>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">Academarket <span class="text-xs bg-blue-700 px-2 py-0.5 rounded text-blue-200">UFLA</span></h1>
+                    <p class="text-xs text-blue-200">Compra e venda de materiais acadêmicos usados</p>
+                </div>
+            </div>
+            <button onclick="openModal('modal-anunciar')" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-blue-950 font-bold px-4 py-2 rounded-lg transition shadow flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plus"></i> Anunciar Material
+            </button>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+        
+        <!-- Barra de Busca e Filtro (R3) -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400"></i>
+                    <input type="text" id="input-busca" oninput="filtrarAnuncios()" placeholder="Buscar por título ou palavra-chave (ex: Livro Cálculo, Kit Arduino)..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800">
+                </div>
+                <div>
+                    <select id="select-categoria" onchange="filtrarAnuncios()" class="w-full py-2 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 bg-white">
+                        <option value="">Todas as Categorias</option>
+                        <option value="Livros">Livros & Didáticos</option>
+                        <option value="Hardware">Hardware & Eletrônica</option>
+                        <option value="Calculadoras">Calculadoras</option>
+                        <option value="Papelaria">Papelaria & Desenho</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid de Anúncios (R2) -->
+        <section>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-gray-700">Anúncios Disponíveis</h2>
+                <span id="contador-anuncios" class="text-sm text-gray-500">0 itens encontrados</span>
+            </div>
+            
+            <div id="grid-anuncios" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards de anúncios inseridos via JS -->
+            </div>
+
+            <!-- Estado Vazio -->
+            <div id="estado-vazio" class="hidden text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+                <i class="fa-solid fa-box-open text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500 font-medium">Nenhum anúncio encontrado para esses filtros.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 text-xs py-6 mt-12 border-t">
+        <div class="max-w-6xl mx-auto px-4 text-center space-y-2">
+            <p>Academarket — Projeto Prático de Empreendedorismo em Sistemas de Informação (UFLA)</p>
+            <p class="text-gray-500">MVP para negociações presenciais no campus da UFLA.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Cadastrar Anúncio (R1) -->
+    <div id="modal-anunciar" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="text-lg font-bold text-blue-900">Anunciar Material</h3>
+                <button onclick="closeModal('modal-anunciar')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="form-anuncio" onsubmit="salvarAnuncio(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Título do Anúncio *</label>
+                    <input type="text" id="titulo" required placeholder="Ex: Livro Cálculo Vol. 1 - Stewart" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-800">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Preço (R$) *</label>
+                        <input type="number" step="0.01" id="preco" required placeholder="50.00" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Categoria *</label>
+                        <select id="categoria" required class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-800 bg-white">
+                            <option value="Livros">Livros</option>
+                            <option value="Hardware">Hardware</option>
+                            <option value="Calculadoras">Calculadoras</option>
+                            <option value="Papelaria">Papelaria</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Estado de Conservação *</label>
+                    <select id="estado" required class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-800 bg-white">
+                        <option value="Novo / Sem Uso">Novo / Sem Uso</option>
+                        <option value="Usado - Excelente Estado">Usado - Excelente Estado</option>
+                        <option value="Usado - Com Marcas/Marcador">Usado - Com Marcas/Marcador</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">URL da Imagem (Opcional)</label>
+                    <input type="url" id="imagem" placeholder="https://exemplo.com/imagem.jpg" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">WhatsApp de Contato (com DDD) *</label>
+                    <input type="tel" id="contato" required placeholder="35999999999" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Descrição Breve *</label>
+                    <textarea id="descricao" rows="3" required placeholder="Descreva detalhes como edição, marcas de uso ou local preferido no campus." class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-800"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-anunciar')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-900 text-white font-semibold rounded hover:bg-blue-800">Publicar Anúncio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Detalhes do Anúncio & Contato (R4 e R5) -->
+    <div id="modal-detalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
+            <div class="flex justify-between items-start mb-4">
+                <h3 id="detalhe-titulo" class="text-xl font-bold text-gray-800"></h3>
+                <button onclick="closeModal('modal-detalhes')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <img id="detalhe-imagem" src="" alt="Produto" class="w-full h-48 object-cover rounded-lg mb-4 bg-gray-100">
+            
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span id="detalhe-preco" class="text-2xl font-extrabold text-green-700"></span>
+                    <span id="detalhe-categoria" class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded"></span>
+                </div>
+                <p><strong class="text-xs text-gray-500 uppercase">Conservação:</strong> <span id="detalhe-estado" class="text-sm"></span></p>
+                <div>
+                    <strong class="text-xs text-gray-500 uppercase block mb-1">Descrição:</strong>
+                    <p id="detalhe-descricao" class="text-gray-700 text-sm bg-gray-50 p-3 rounded border border-gray-200"></p>
+                </div>
+                
+                <!-- Ações de Reserva/Contato (R4) -->
+                <div class="pt-4 border-t space-y-2">
+                    <a id="btn-whatsapp" href="#" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition">
+                        <i class="fa-brands fa-whatsapp text-lg"></i> Falar com Vendedor (Combinar na UFLA)
+                    </a>
+                </div>
+
+                <!-- Gestão do Anúncio (R5) -->
+                <div class="pt-4 border-t bg-gray-50 p-3 rounded-lg border">
+                    <p class="text-xs font-bold text-gray-500 mb-2 uppercase">Gestão do Anúncio (Dono / Admin)</p>
+                    <div class="flex gap-2">
+                        <button id="btn-marcar-vendido" onclick="" class="flex-1 text-xs bg-amber-100 text-amber-800 hover:bg-amber-200 font-semibold py-2 px-3 rounded border border-amber-300">
+                            Marcar como Vendido
+                        </button>
+                        <button id="btn-excluir" onclick="" class="flex-1 text-xs bg-red-100 text-red-700 hover:bg-red-200 font-semibold py-2 px-3 rounded border border-red-300">
+                            Excluir Anúncio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script com a lógica do MVP -->
+    <script>
+        // Dados Iniciais (Mock inicial para teste de validação)
+        const anunciosIniciais = [
+            {
+                id: 1,
+                titulo: "Cálculo Volume 1 - James Stewart (7ª Ed.)",
+                preco: 85.00,
+                categoria: "Livros",
+                estado: "Usado - Excelente Estado",
+                descricao: "Livro em perfeito estado, sem grifos. Entrega presencial no Pavilhão de Aulas (PVH).",
+                contato: "35999998888",
+                imagem: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500",
+                vendido: false
+            },
+            {
+                id: 2,
+                titulo: "Kit Arduino Uno R3 Completo com Sensores",
+                preco: 120.00,
+                categoria: "Hardware",
+                estado: "Novo / Sem Uso",
+                descricao: "Usado apenas na disciplina de Sistemas Embarcados. Acompanha protoboard, cabo e sensores.",
+                contato: "35988887777",
+                imagem: "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=500",
+                vendido: false
+            },
+            {
+                id: 3,
+                titulo: "Calculadora Científica Casio fx-82MS",
+                preco: 45.00,
+                categoria: "Calculadoras",
+                estado: "Usado - Com Marcas/Marcador",
+                descricao: "Funcionando perfeitamente. Bateria nova. Posso entregar no Restaurante Universitário (RU).",
+                contato: "35977776666",
+                imagem: "https://images.unsplash.com/photo-1611125832047-1d7ad1e8e48a?w=500",
+                vendido: false
+            }
+        ];
+
+        // Carrega do LocalStorage ou usa o mock inicial
+        let anuncios = JSON.parse(localStorage.getItem('academarket_anuncios')) || anunciosIniciais;
+
+        function salvarNoLocalStorage() {
+            localStorage.setItem('academarket_anuncios', JSON.stringify(anuncios));
+        }
+
+        function renderizarAnuncios(lista) {
+            const container = document.getElementById('grid-anuncios');
+            const vazio = document.getElementById('estado-vazio');
+            const contador = document.getElementById('contador-anuncios');
+            
+            container.innerHTML = '';
+            contador.innerText = `${lista.length} ${lista.length === 1 ? 'item encontrado' : 'itens encontrados'}`;
+
+            if (lista.length === 0) {
+                vazio.classList.remove('hidden');
+                return;
+            } else {
+                vazio.classList.add('hidden');
+            }
+
+            lista.forEach(item => {
+                const imgPlaceholder = "https://via.placeholder.com/400x300?text=Material+Academico";
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col justify-between transition hover:shadow-md ${item.vendido ? 'opacity-60 bg-gray-50' : ''}`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="relative">
+                            <img src="${item.imagem || imgPlaceholder}" alt="${item.titulo}" class="w-full h-40 object-cover" onerror="this.src='${imgPlaceholder}'">
+                            <span class="absolute top-2 right-2 bg-blue-900 text-white text-xs font-semibold px-2 py-1 rounded shadow">
+                                ${item.categoria}
+                            </span>
+                            ${item.vendido ? '<span class="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow uppercase">Vendido</span>' : ''}
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-gray-800 text-base line-clamp-1 mb-1">${item.titulo}</h3>
+                            <p class="text-xs text-gray-500 mb-2">${item.estado}</p>
+                            <p class="text-lg font-extrabold text-green-700">R$ ${parseFloat(item.preco).toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button onclick="verDetalhes(${item.id})" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-900 font-semibold py-2 rounded-lg text-sm transition">
+                            Ver Detalhes / Contato
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filtrarAnuncios() {
+            const busca = document.getElementById('input-busca').value.toLowerCase();
+            const categoria = document.getElementById('select-categoria').value;
+
+            const filtrados = anuncios.filter(item => {
+                const bateBusca = item.titulo.toLowerCase().includes(busca) || item.descricao.toLowerCase().includes(busca);
+                const bateCategoria = categoria === '' || item.categoria === categoria;
+                return bateBusca && bateCategoria;
+            });
+
+            renderizarAnuncios(filtrados);
+        }
+
+        function salvarAnuncio(e) {
+            e.preventDefault();
+            const novoAnuncio = {
+                id: Date.now(),
+                titulo: document.getElementById('titulo').value,
+                preco: parseFloat(document.getElementById('preco').value),
+                categoria: document.getElementById('categoria').value,
+                estado: document.getElementById('estado').value,
+                imagem: document.getElementById('imagem').value,
+                contato: document.getElementById('contato').value.replace(/\D/g, ''),
+                descricao: document.getElementById('descricao').value,
+                vendido: false
+            };
+
+            anuncios.unshift(novoAnuncio);
+            salvarNoLocalStorage();
+            filtrarAnuncios();
+            closeModal('modal-anunciar');
+            document.getElementById('form-anuncio').reset();
+            alert('Anuncio publicado com sucesso!');
+        }
+
+        function verDetalhes(id) {
+            const item = anuncios.find(a => a.id === id);
+            if (!item) return;
+
+            document.getElementById('detalhe-titulo').innerText = item.titulo;
+            document.getElementById('detalhe-preco').innerText = `R$ ${parseFloat(item.preco).toFixed(2)}`;
+            document.getElementById('detalhe-categoria').innerText = item.categoria;
+            document.getElementById('detalhe-estado').innerText = item.estado;
+            document.getElementById('detalhe-descricao').innerText = item.descricao;
+            document.getElementById('detalhe-imagem').src = item.imagem || 'https://via.placeholder.com/400x300?text=Material+Academico';
+
+            // Link WhatsApp (R4)
+            const mensagem = encodeURIComponent(`Olá! Vi seu anúncio do "${item.titulo}" no Academarket UFLA e tenho interesse em negociar/combinar a entrega.`);
+            document.getElementById('btn-whatsapp').href = `https://wa.me/55${item.contato}?text=${mensagem}`;
+
+            // Configurar botões de gestão (R5)
+            const btnVendido = document.getElementById('btn-marcar-vendido');
+            btnVendido.innerText = item.vendido ? "Reativar Anúncio" : "Marcar como Vendido";
+            btnVendido.onclick = () => alternarVendido(item.id);
+
+            const btnExcluir = document.getElementById('btn-excluir');
+            btnExcluir.onclick = () => excluirAnuncio(item.id);
+
+            openModal('modal-detalhes');
+        }
+
+        function alternarVendido(id) {
+            const item = anuncios.find(a => a.id === id);
+            if (item) {
+                item.vendido = !item.vendido;
+                salvarNoLocalStorage();
+                filtrarAnuncios();
+                closeModal('modal-detalhes');
+            }
+        }
+
+        function excluirAnuncio(id) {
+            if (confirm("Tem certeza que deseja remover este anúncio?")) {
+                anuncios = anuncios.filter(a => a.id !== id);
+                salvarNoLocalStorage();
+                filtrarAnuncios();
+                closeModal('modal-detalhes');
+            }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Inicialização
+        filtrarAnuncios();
+    </script>
+</body>
+</html>
